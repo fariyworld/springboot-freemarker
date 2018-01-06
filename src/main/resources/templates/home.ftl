@@ -5,6 +5,13 @@
 <title>freemarker测试</title>
 </head>
 <body>
-	${name}
+	${name}<br />
+	
+	<#if sex == 1>
+	男
+	<#else>
+	女
+	</#if>
+	
 </body>
 </html>
