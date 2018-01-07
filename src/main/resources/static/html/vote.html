@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>投票</title>
+
+<link type="text/css" rel="stylesheet" href="../css/vote.css">
+
+<script type="text/javascript" src="../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript">
+
+	$(function(){
+	
+		var isFirst = true;
+		//initVote();
+		//初始化数据 把票数存到缓存中
+		function initVote() {
+		
+			if (isFirst) {
+			
+				var emArr = document.getElementsByTagName("em");
+
+				console.log(emArr.length);
+
+				var voteArr = {};
+
+				for (var index = 0; index < emArr.length; index++) {
+
+					voteArr[index] = emArr[index].innerHTML;
+				}
+
+				var peoArr = {};
+
+				var peoArr1 = document.getElementsByTagName("img");
+
+				for (var index = 0; index < peoArr1.length; index++) {
+
+					peoArr[index] = peoArr1[index].attributes.getNamedItem("alt").nodeValue;
+				}
+
+				var url = "/initVote";
+
+				var data = {
+					"voteArr" : voteArr,
+					"peoArr" : peoArr
+				};
+
+				$.post(url, data, function(data) {
+					console.log(data.result);
+				}, "json");
+				
+				isFirst = false;
+			}
+		}
+
+		//readCache();
+		//从缓存中读取数据,设置图片，姓名，分数，图片alt属性
+		function readCache(){
+		
+			var url = "/readCache";
+		
+			$.post(url,function(data){
+				
+				//data.map:票数集合 key：人，value：分数
+				var map = data.map;
+				//设值
+				for(var index in map){
+					//console.log(index);//key 0-19升序 对应的分数为降序
+					//console.log(map[index]);//Map<String.Double>
+					//setScore(index,map[index]);
+				}
+				console.log("update success");
+			},"json");
+		}
+		
+		//setScore("刘小红",79452);
+		function setScore(peo,score){
+			
+			//设置分数
+			$("img[alt="+peo+"]").parent().next().children().first().children().last().html(score);
+			
+			//设置图片
+			
+		}
+
+		init();
+		//初始化页面
+		function init(){
+		
+			//设置每一个dd的值图片，姓名，分数，图片alt属性
+			var url = "/readCache";
+		
+			$.post(url,function(data){
+				
+				//data.map:票数集合 key：人，value：分数
+				var map = data.map;
+				//设值
+				for(var index in map){
+					//console.log(index);//key 0-19升序 对应的分数为降序
+					//console.log(map[index]);//Map<String.Double>
+					var ddEle = $("dd").eq(index);//每一个dd
+					
+					var map2 = map[index];
+					
+					var peo;
+					var score;
+					
+					for(var i in map2){
+						peo = i;
+						score = map2[i];
+					}
+					setDD(ddEle,peo,score);
+				}
+				console.log("update success");
+			},"json");
+		}
+		
+		
+		//设置每一个dd的值图片，姓名，分数，图片alt属性
+		function setDD(ddEle,peo,score){
+			
+			//1.设置图片
+			var imgNode = ddEle.children("div.divimg").first().children().first();
+			//图片路径
+			imgNode.attr("src","../img/"+peo+".jpg");
+			//图片alt
+			imgNode.attr("alt",peo);
+			//姓名
+			ddEle.children("h2").first().children().first().html(peo);
+			//票数
+			ddEle.children("ul").first().children().first().children("em").first().html(score);
+		}
+
+		//点击投票，票数+1，若票数超过前一个，则改变排位
+/* 		$("input[type='button']").click(function(){
+			
+			var currentVal = $(this).next().html();
+			//alert("当前的票数："+currentVal);
+			var currentPeoEle = $(this).parent().parent().prev().children().first();
+			var currentPeo = currentPeoEle.attr("alt");
+			//alert("您投票的是："+currentPeo);
+			
+			var url = "/updateVote";
+			var data = {"value":currentPeo,"score":currentVal};
+			//更新缓存数据
+			$.post(url,data,function(data){
+				console.log(data.result);
+			},"json");
+			
+			//票数+1
+			var score = Number(currentVal)+1;
+			$(this).next().html(score);
+			
+			//判断有没有超过前一个的票数 第一个元素不用排
+			var prevEle = $(this).parent().parent().parent().prev();
+			
+			if(prevEle.length != 0){
+			
+				//console.log("比较票数，更新排位");
+				
+				var emEle = prevEle.children("ul").first().children().first().children("em").first();
+				var emVal = emEle.html();
+				
+				var flag = score > emVal ;
+				
+				if( flag ){
+					console.log("需要更新排位");
+					
+					//设置两个dd的图片，名字，分数，a链接
+					var prevPeoEle = prevEle.children("div.divimg").first().children().first();
+					var prevPeo = prevPeoEle.attr("alt");
+					
+					prevPeoEle.attr("src","../img/"+currentPeo+".jpg");
+					currentPeoEle.attr("src","../img/"+prevPeo+".jpg");
+					
+					prevPeoEle.attr("alt",currentPeo);
+					currentPeoEle.attr("alt",prevPeo);
+					
+					emEle.html(score);
+					$(this).next().html(emVal);
+					
+					prevEle.children("h2").first().children().first().html(currentPeo);
+					$(this).parent().parent().parent().children("h2").first().children().first().html(prevPeo);
+					
+				}else{
+					console.log("不需要更新排位");
+				}
+				
+			}else{
+				console.log("当前为第一,不需要检查更新排位");
+			}
+		}); */
+	
+		//票数+1，执行init()函数
+		$("input[type='button']").click(function(){
+			//alert("票数+1，执行init()函数");
+			
+			var currentVal = $(this).next().html();
+			//alert("当前的票数："+currentVal);
+			
+			var currentPeo = $(this).parent().parent().prev().children().first().attr("alt");
+			//alert("您投票的是："+currentPeo);
+			
+			var url = "/updateVote";
+			var data = {"value":currentPeo,"score":currentVal};
+			//更新缓存数据
+			$.post(url,data,function(data){
+			
+				console.log(data.result);
+				
+				if( data.result == "success" ){
+					
+					init();
+				}
+				
+			},"json");
+		});
+		
+	});
+	
+</script>
+
+</head>
+<body>
+
+	<div class="w950">
+		<div class="s_title">
+			<h3>
+				<b>颜值评选</b>
+			</h3>
+		</div>
+		<div class="s_block">
+			<div class="ss">
+				<dl class="piclist2">
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd class="mr0">
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button"><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="">刘浩杰</a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd class="mr0">
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href=""></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd class="mr0">
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href=""></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd>
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+					<dd class="mr0">
+						<div class="divimg">
+							<img src="" width="140" height="213" alt="">
+						</div>
+						<ul>
+							<li><input type="button" /><em></em>票</li>
+						</ul>
+						<div class="picbg"></div>
+						<h2>
+							<a target="_blank" href="javascript:;"></a>
+						</h2>
+					</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

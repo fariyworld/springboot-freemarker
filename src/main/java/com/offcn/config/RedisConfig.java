@@ -42,6 +42,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	/**
 	 * redis模板操作类,类似于jdbcTemplate的一个类;
+	 * 
+	 * 解决redis自动生成key，key乱码，为自定义key
 	 *
 	 * @param factory
 	 *        通过Spring进行注入，参数在application.properties进行配置；
