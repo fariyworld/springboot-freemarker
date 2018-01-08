@@ -67,6 +67,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);  
 		redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);  
 		redisTemplate.afterPropertiesSet(); 
+		
 		return redisTemplate;
 	}
 	

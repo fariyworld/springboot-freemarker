@@ -68,12 +68,12 @@ public class SearchController {
 	@ResponseBody
 	public QueryVO updateVote(String value, double score){
 		
-		System.out.println("人："+value+" 票数："+score);
+		//System.out.println("人："+value+" 票数："+score);
 		
 		//更新redis缓存中 负数为减
 		Double res = redisService.set("voteSet", value, 1);
 		
-		System.out.println("更新后的分数："+res);
+		//System.out.println("更新后的分数："+res);
 		
 		QueryVO queryVO = new QueryVO();
 		if( res != null && !res.equals("") )
